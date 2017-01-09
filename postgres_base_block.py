@@ -1,9 +1,11 @@
 from nio.block.base import Block
+from nio.command import command
 from nio.util.discovery import not_discoverable
 from nio.properties import VersionProperty, StringProperty, IntProperty
 from psycopg2 import connect
 
 
+@command('Connection status', method='connection_status')
 @not_discoverable
 class PostgresBase(Block):
     """A block for communicating with an postgres database.
@@ -16,12 +18,12 @@ class PostgresBase(Block):
 
     version = VersionProperty('1.0.0')
     host = StringProperty(title="Host",
-                          default="[[REDSHIFT_HOST]]")
+                          default="[[POSTGRES_HOST]]")
     port = IntProperty(title="Port",
-                       default="[[REDSHIFT_PORT]]")
+                       default="[[POSTGRES_PORT]]")
     db_name = StringProperty(title="DB Name", allow_none=False)
     user_name = StringProperty(title="User Name", default="test")
-    password = StringProperty(title="Password", default="password")
+    password = StringProperty(title="Password", allow_none=False)
 
     def __init__(self):
         super().__init__()
@@ -37,5 +39,9 @@ class PostgresBase(Block):
 
     def stop(self):
         self.logger.debug('closing postgres connection...')
+        self._cur.close()
         self._conn.close()
         super().stop()
+
+    def connection_status(self):
+        return 'Connected' if self._conn.status else 'Not connected'
