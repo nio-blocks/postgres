@@ -1,3 +1,4 @@
+from nio.properties import BoolProperty, StringProperty
 from nio.util.discovery import discoverable
 from .postgres_base_block import PostgresBase
 
@@ -7,31 +8,55 @@ class PostgresInsert(PostgresBase):
     """A block for inserting incoming signals into a postgres database.
 
     Properties:
+        table_name(str): name of the table on the database to execute commands
+                         on.
 
     """
+
+    upsert = BoolProperty(title="Update conflicting keys", default=True)
+    table_name = StringProperty(title="Table name", allow_none=False)
 
     def __init__(self):
         super().__init__()
 
-    def configure(self, context):
-        super().configure(context)
-
     def process_signals(self, signals):
-        # execute an insert command for incoming signals
+        """execute an insert command for all incoming signals"""
         for signal in signals:
             self.execute_insert(signal.to_dict())
 
     def execute_insert(self, data):
-        # execute an insert query for the given data
+        """execute an insert query for the given data"""
         self.logger.debug('executing INSERT on data: {}'.format(data))
-        self._cur.execute(self._build_insert_query_string(data))
+        try:
+            self._cur.execute(self._build_insert_query_string(data),
+                              tuple(data.values()))
+        except:
+            self.logger.exception("Could not execute command".format())
+            self._rollback_transactions()
+        else:
+            self._commit_transactions()
 
     def _build_insert_query_string(self, data):
-        # build an SQL query based on the incoming (dictionary) data
-        query_base = 'INSERT INTO {} ({}) VALUES {}' \
-                     .format(self.db_name(),
-                             ', '.join(list(data.keys())),
-                             list(data.values()))
+        """build an INSERT SQL query based on the incoming (dictionary)
+        data.
+        """
+        query_base = 'INSERT INTO {} ({}) VALUES ({})'
+        # TODO: possible sql injection on db name and data keys?
+        query_final = query_base.format(self.table_name(),
+                                        ', '.join(list(data.keys())),
+                                        ', '.join(['%s' for i in range(len(data.keys()))]))
 
-        self.logger.debug('built query string: {}'.format(query_base))
-        return query_base
+        self.logger.debug('built query string: {}'.format(query_final))
+        return query_final
+
+    def _rollback_transactions(self):
+        """rollback any pending transactions, for use in undoing erroraneous
+        commands
+        """
+        self._conn.rollback()
+
+    def _commit_transactions(self):
+        """commit any successfully executed transactions, making the changes
+        permanent in the table
+        """
+        self._conn.commit()
