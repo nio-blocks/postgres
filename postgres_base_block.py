@@ -1,8 +1,14 @@
 from nio.block.base import Block
 from nio.command import command
 from nio.util.discovery import not_discoverable
-from nio.properties import VersionProperty, StringProperty, IntProperty
+from nio.properties import (VersionProperty, StringProperty, IntProperty,
+                            BoolProperty, PropertyHolder, ObjectProperty)
 from psycopg2 import connect
+
+
+class AuthCreds(PropertyHolder):
+    username = StringProperty(title="Username", default="", allow_none=False)
+    password = StringProperty(title="Password", default="", allow_none=True)
 
 
 @not_discoverable
@@ -16,8 +22,10 @@ class PostgresBase(Block):
         host(str): hostname of the database to connect to
         port(int): postgres port on the host to connect to
         db_name(str): name of the database on the host
-        user_name(str): user name credential of the postgres server
+        creds(object): username and password for the host database
         password(str): password credential of the postgres server
+        table_name(str): name of the table on the database to execute commands
+                         on.
     """
 
     version = VersionProperty('1.0.0')
@@ -26,8 +34,10 @@ class PostgresBase(Block):
     port = IntProperty(title="Port",
                        default="[[POSTGRES_PORT]]")
     db_name = StringProperty(title="DB Name", allow_none=False)
-    user_name = StringProperty(title="User Name", default="test")
-    password = StringProperty(title="Password", allow_none=False)
+    creds = ObjectProperty(AuthCreds, title="Credentials", default=AuthCreds())
+    table_name = StringProperty(title="Table name", allow_none=False)
+    commit_all = BoolProperty(title="Commit transactions", default=True,
+                              visible=False)
 
     def __init__(self):
         super().__init__()
@@ -52,8 +62,10 @@ class PostgresBase(Block):
         """
         self.logger.debug('Connecting to postgres db...')
         try:
-            self._conn = connect(database=self.db_name(), user=self.user_name(),
-                                 password=self.password(), host=self.host(),
+            self._conn = connect(database=self.db_name(),
+                                 user=self.creds().username(),
+                                 password=self.creds().password(),
+                                 host=self.host(),
                                  port=self.port())
             self._cur = self._conn.cursor()
         except:
