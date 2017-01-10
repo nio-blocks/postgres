@@ -47,8 +47,9 @@ class PostgresBase(Block):
         return 'Connected' if self._conn.status else 'Not connected'
 
     def connect(self):
-        # connect to the database and create the cursor object for executing
-        # commands
+        """connect to the database and create the cursor object for executing
+        commands
+        """
         self.logger.debug('Connecting to postgres db...')
         try:
             self._conn = connect(database=self.db_name(), user=self.user_name(),
@@ -60,6 +61,6 @@ class PostgresBase(Block):
             raise
 
     def disconnect(self):
-        # disconnect from the database and close the cursor object
+        """disconnect from the database and close the cursor object"""
         self._cur.close()
         self._conn.close()
