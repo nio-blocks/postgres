@@ -1,4 +1,4 @@
-from nio.properties import BoolProperty, StringProperty
+from nio.properties import BoolProperty
 from nio.util.discovery import discoverable
 from .postgres_base_block import PostgresBase
 
@@ -8,13 +8,10 @@ class PostgresInsert(PostgresBase):
     """A block for inserting incoming signals into a postgres database.
 
     Properties:
-        table_name(str): name of the table on the database to execute commands
-                         on.
 
     """
 
     upsert = BoolProperty(title="Update conflicting keys", default=True)
-    table_name = StringProperty(title="Table name", allow_none=False)
 
     def __init__(self):
         super().__init__()
@@ -23,6 +20,9 @@ class PostgresInsert(PostgresBase):
         """execute an insert command for all incoming signals"""
         for signal in signals:
             self.execute_insert(signal.to_dict())
+        # only commit transactions when all have been attempted
+        if self.commit_all():
+            self._commit_transactions()
 
     def execute_insert(self, data):
         """execute an insert query for the given data"""
@@ -33,8 +33,6 @@ class PostgresInsert(PostgresBase):
         except:
             self.logger.exception("Could not execute command".format())
             self._rollback_transactions()
-        else:
-            self._commit_transactions()
 
     def _build_insert_query_string(self, data):
         """build an INSERT SQL query based on the incoming (dictionary)
@@ -50,7 +48,7 @@ class PostgresInsert(PostgresBase):
         return query_final
 
     def _rollback_transactions(self):
-        """rollback any pending transactions, for use in undoing erroraneous
+        """rollback any pending transactions, for use in undoing erroneous
         commands
         """
         self._conn.rollback()
