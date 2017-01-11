@@ -1,4 +1,3 @@
-from nio.properties import BoolProperty
 from .postgres_base_block import PostgresBase
 
 
