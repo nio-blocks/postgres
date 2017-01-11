@@ -25,7 +25,6 @@ class PostgresBase(Block):
         port(int): postgres port on the host to connect to
         db_name(str): name of the database on the host
         creds(object): username and password for the host database
-        password(str): password credential of the postgres server
         table_name(str): name of the table on the database to execute commands
                          on.
         commit_all(bool): hidden attribute that configures whether to commit

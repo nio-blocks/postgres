@@ -9,8 +9,6 @@ class PostgresInsert(PostgresBase):
 
     """
 
-    upsert = BoolProperty(title="Update conflicting keys", default=True)
-
     def __init__(self):
         super().__init__()
 
