@@ -14,9 +14,9 @@ class AuthCreds(PropertyHolder):
 
 
 @not_discoverable
-@command('Connection status', method='connection_status')
-@command('Reconnect', method='connect')
-@command('Disconnect', method='disconnect')
+@command('connection_status', method='connection_status')
+@command('reconnect', method='connect')
+@command('disconnect', method='disconnect')
 class PostgresBase(Block):
     """A block for communicating with an postgres database.
 
@@ -68,16 +68,12 @@ class PostgresBase(Block):
         commands
         """
         self.logger.debug('Connecting to postgres db...')
-        try:
-            self._conn = connect(database=self.db_name(),
-                                 user=self.creds().username(),
-                                 password=self.creds().password(),
-                                 host=self.host(),
-                                 port=self.port())
-            self._cur = self._conn.cursor()
-        except:
-            # fail to start the service if a connection can't be made
-            raise
+        self._conn = connect(database=self.db_name(),
+                             user=self.creds().username(),
+                             password=self.creds().password(),
+                             host=self.host(),
+                             port=self.port())
+        self._cur = self._conn.cursor()
 
     def disconnect(self):
         """disconnect from the database and close the cursor object"""
