@@ -7,7 +7,7 @@ from psycopg2 import connect
 
 
 class AuthCreds(PropertyHolder):
-    username = StringProperty(title="Username", default="", allow_none=False)
+    username = StringProperty(title="Username", default="", allow_none=True)
     password = StringProperty(title="Password", default="", allow_none=True)
 
 
