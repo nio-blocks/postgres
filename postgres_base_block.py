@@ -1,9 +1,11 @@
+import re
+from psycopg2 import connect
+
 from nio.block.base import Block
 from nio.command import command
-from nio.util.discovery import not_discoverable
 from nio.properties import (VersionProperty, StringProperty, IntProperty,
                             BoolProperty, PropertyHolder, ObjectProperty)
-from psycopg2 import connect
+from nio.util.discovery import not_discoverable
 
 
 class AuthCreds(PropertyHolder):
@@ -26,6 +28,8 @@ class PostgresBase(Block):
         password(str): password credential of the postgres server
         table_name(str): name of the table on the database to execute commands
                          on.
+        commit_all(bool): hidden attribute that configures whether to commit
+                          valid transactions
     """
 
     version = VersionProperty('1.0.0')
@@ -35,7 +39,7 @@ class PostgresBase(Block):
                        default="[[POSTGRES_PORT]]")
     db_name = StringProperty(title="DB Name", allow_none=False)
     creds = ObjectProperty(AuthCreds, title="Credentials", default=AuthCreds())
-    table_name = StringProperty(title="Table name", allow_none=False)
+    table_name = StringProperty(title="Table Name", allow_none=False)
     commit_all = BoolProperty(title="Commit transactions", default=True,
                               visible=False)
 
@@ -46,6 +50,10 @@ class PostgresBase(Block):
 
     def configure(self, context):
         super().configure(context)
+
+        # validate any user-given variables
+        self._validate_string(self.table_name())
+
         self.connect()
 
     def stop(self):
@@ -76,3 +84,14 @@ class PostgresBase(Block):
         """disconnect from the database and close the cursor object"""
         self._cur.close()
         self._conn.close()
+
+    @staticmethod
+    def _validate_string(string):
+        """validate any string going into an SQL statement to protect
+        against SQL injection. Every valid SQL identifier and keyword must
+        obey the format represented by the regex below. If the variable is
+        found to be invalid, this fails configuration of this block."""
+
+        if not re.match("^[a-zA-Z_][a-zA-Z0-9_]*$", string):
+            raise ValueError("SQL keyword or identifier '{}' did not pass "
+                             "validation.".format(string))
