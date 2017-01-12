@@ -2,7 +2,6 @@ from unittest.mock import patch, MagicMock
 from nio.signal.base import Signal
 from nio.testing.block_test_case import NIOBlockTestCase
 from ..postgres_insert_block import PostgresInsert
-import psycopg2
 
 
 class TestInsertBlock(NIOBlockTestCase):
@@ -19,9 +18,9 @@ class TestInsertBlock(NIOBlockTestCase):
                                    'table_name': 'tablename',
                                    'log_level': 'DEBUG'
                                    })
-        blk.start()
-        blk.process_signals([Signal({"testattr": "testval"})])
-        blk.stop()
+
+        query = blk._build_insert_query_string({"testattr": "testval"})
+        self.assertEqual(query, "INSERT INTO tablename (testattr) VALUES (%s)")
 
         self.assert_num_signals_notified(0)
         self.assertTrue(patched_conn.called)
