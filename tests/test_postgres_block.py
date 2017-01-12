@@ -60,3 +60,76 @@ class TestInsertBlock(NIOBlockTestCase):
         for key in ['1test2', ');-- testname', 'testname;', '"testname"',
                     'test$name', 'test:name::']:
             self.assertRaises(ValueError, blk.execute_insert, {key: "testval"})
+
+    @patch.object(PostgresInsert, "_commit_transactions")
+    @patch.object(PostgresInsert, "_rollback_transactions")
+    @patch.object(PostgresInsert, "connect")
+    def test_rollback_invalid_signals(self, patched_conn, patched_rollback,
+                                      patched_commit):
+        blk = PostgresInsert()
+        blk._conn = MagicMock()
+        blk._cur = MagicMock()
+        self.configure_block(blk, {'host': '127.0.0.1',
+                                   'port': 5432,
+                                   'db_name': 'dbname',
+                                   'table_name': 'tablename',
+                                   'log_level': 'DEBUG'
+                                   })
+
+        blk.start()
+
+        # block should rollback when receiving an invalid key and not commit
+        # anything
+        blk.process_signals([Signal({'invalid_key);': 1})])
+        self.assertTrue(patched_rollback.called)
+        self.assertFalse(patched_commit.called)
+
+        blk.stop()
+
+    @patch.object(PostgresInsert, "_commit_transactions")
+    @patch.object(PostgresInsert, "_rollback_transactions")
+    @patch.object(PostgresInsert, "connect")
+    def test_commit_valid_signals(self, patched_conn, patched_rollback,
+                                  patched_commit):
+        blk = PostgresInsert()
+        blk._conn = MagicMock()
+        blk._cur = MagicMock()
+        self.configure_block(blk, {'host': '127.0.0.1',
+                                   'port': 5432,
+                                   'db_name': 'dbname',
+                                   'table_name': 'tablename',
+                                   'log_level': 'DEBUG'
+                                   })
+
+        blk.start()
+
+        # block should not rollback when receiving a valid key and commit the
+        # transaction
+        blk.process_signals([Signal({'valid_key': 1})])
+        self.assertFalse(patched_rollback.called)
+        self.assertTrue(patched_commit.called)
+
+        blk.stop()
+
+    @patch.object(PostgresInsert, "_commit_transactions")
+    @patch.object(PostgresInsert, "connect")
+    def test_specify_not_commit(self, patched_conn, patched_commit):
+        blk = PostgresInsert()
+        blk._conn = MagicMock()
+        blk._cur = MagicMock()
+        self.configure_block(blk, {'host': '127.0.0.1',
+                                   'port': 5432,
+                                   'db_name': 'dbname',
+                                   'table_name': 'tablename',
+                                   'log_level': 'DEBUG',
+                                   'commit_all': False
+                                   })
+
+        blk.start()
+
+        # block should not commit when the hidden commit_all attribute is
+        # specified to be false
+        blk.process_signals([Signal({'valid_key': 1})])
+        self.assertFalse(patched_commit.called)
+
+        blk.stop()
