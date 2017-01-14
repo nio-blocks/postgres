@@ -1,24 +1,32 @@
-Example
-===========
+PostgresInsert
+==============
 
-What does this block do?
+Inserts signal data into a postgres database/table
 
 Properties
 --------------
-None
+-  host(str): hostname of the database to connect to
+-  port(int): postgres port on the host to connect to
+-  db_name(str): name of the database on the host
+-  creds(object): username and password for the host database
+-  table_name(str): name of the table on the database to execute commands on.
+-  commit_all(bool): hidden attribute that configures whether to commit valid transactions
 
 Dependencies
 ----------------
-None
+psycopg2
 
 Commands
 ----------------
-None
+-  connection_status: True if current connection succeeded and is active
+-  disconnect: tear down current connection
+-  reconnect: reconnect to host specified in config
 
 Input
 -------
-Any list of signals.
+Any list of signals, where the keys of the incoming data are column names,
+and the values are the values needing to be inserted into those names.
 
 Output
 ---------
-Same list of signals as input.
+None
