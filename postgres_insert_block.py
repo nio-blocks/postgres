@@ -24,8 +24,10 @@ class PostgresInsert(PostgresBase):
             for signal in signals:
                 try:
                     self.execute_insert(signal.to_dict())
+                    self._commit_transactions()
                 except:
                     self.logger.exception("Could not execute insert query")
+                    self._rollback_transactions()
 
     def execute_insert(self, data):
         """execute an insert query for the given data"""
