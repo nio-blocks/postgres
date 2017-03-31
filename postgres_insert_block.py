@@ -7,7 +7,7 @@ class PostgresInsert(PostgresBase):
     def __init__(self):
         super().__init__()
 
-    def process_signals(self, signals):
+    def _locked_process_signals(self, signals):
         """execute an insert command for all incoming signals"""
 
         # if commits are needed, commit after succesfully executing all
