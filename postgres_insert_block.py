@@ -7,7 +7,7 @@ class PostgresInsert(PostgresBase):
     def __init__(self):
         super().__init__()
 
-    def process_signals(self, signals):
+    def _locked_process_signals(self, signals):
         """execute an insert command for all incoming signals"""
 
         # if commits are needed, commit after succesfully executing all
@@ -24,8 +24,10 @@ class PostgresInsert(PostgresBase):
             for signal in signals:
                 try:
                     self.execute_insert(signal.to_dict())
+                    self._commit_transactions()
                 except:
                     self.logger.exception("Could not execute insert query")
+                    self._rollback_transactions()
 
     def execute_insert(self, data):
         """execute an insert query for the given data"""

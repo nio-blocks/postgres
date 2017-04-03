@@ -127,9 +127,10 @@ class TestInsertBlock(NIOBlockTestCase):
 
         blk.start()
 
-        # block should not commit when the hidden commit_all attribute is
-        # specified to be false
-        blk.process_signals([Signal({'valid_key': 1})])
-        self.assertFalse(patched_commit.called)
+        # block should commit for every signal it inserts when commit_all is
+        # false
+        blk.process_signals([Signal({'valid_key': 1}),
+                             Signal({'valid_key': 2})])
+        self.assertEqual(patched_commit.call_count, 2)
 
         blk.stop()
