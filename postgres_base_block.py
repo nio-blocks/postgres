@@ -63,7 +63,7 @@ class PostgresBase(LimitLock, Block):
 
     def process_signals(self, signals):
         self.execute_with_lock(
-            self._locked_process_signals, 10, signals=signals)
+            self._locked_process_signals, 100, signals=signals)
 
     def _locked_process_signals(self, signals):
         pass
