@@ -104,8 +104,6 @@ class PostgresInsert(PostgresBase):
                                         keys_tuple,
                                         value_tuple)
 
-        # get rid of quotations
-        #query_final = query_final.replace("'", '')
         self.logger.debug('built query string: {}'.format(query_final))
 
         return query_final
