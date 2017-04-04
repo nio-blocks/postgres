@@ -85,8 +85,7 @@ class PostgresInsert(PostgresBase):
             value_tuple = ','.join(
                 self._cur.mogrify(
                     "({})".format(','.join(["%s"] * len(data_dict))),
-                    tuple(data_dict.values())
-                )
+                    tuple(data_dict.values())).decode()
                 for data_dict in data)
         elif isinstance(data, dict):
             # single insert
@@ -94,7 +93,7 @@ class PostgresInsert(PostgresBase):
             value_tuple = self._cur.mogrify(
                 "({})".format(','.join(["%s"] * len(data))),
                 tuple(data.values())
-            )
+            ).decode()
         else:
             raise TypeError("Could not build a query string with data "
                             "of type {}. Need dict or list."
@@ -107,7 +106,7 @@ class PostgresInsert(PostgresBase):
 
         # get rid of quotations
         #query_final = query_final.replace("'", '')
-        self.logger.debug('built query string1: {}'.format(query_final))
+        self.logger.debug('built query string: {}'.format(query_final))
 
         return query_final
 
