@@ -1,6 +1,7 @@
 from nio.properties import BoolProperty
 
 from .postgres_base_block import PostgresBase
+from collections import OrderedDict
 
 
 class PostgresInsert(PostgresBase):
@@ -24,8 +25,8 @@ class PostgresInsert(PostgresBase):
         # one insertion per list of signals, therefore only one commit
         if self.bulk_insert():
             try:
-                self.execute_insert([signal.to_dict() for signal in
-                                     signals])
+                self.execute_insert([OrderedDict(signal.to_dict()) for signal
+                                     in signals])
                 self._commit_transactions()
             except:
                 self.logger.exception("Could not execute bulk insert query")
@@ -36,7 +37,7 @@ class PostgresInsert(PostgresBase):
                 # commit only after every insert has been completed
                 try:
                     for signal in signals:
-                        self.execute_insert(signal.to_dict())
+                        self.execute_insert(OrderedDict(signal.to_dict()))
                     self._commit_transactions()
                 except:
                     self.logger.exception("One or more insert queries could "
@@ -46,7 +47,7 @@ class PostgresInsert(PostgresBase):
                 # commit after every insert
                 try:
                     for signal in signals:
-                        self.execute_insert(signal.to_dict())
+                        self.execute_insert(OrderedDict(signal.to_dict()))
                         self._commit_transactions()
                 except:
                     self.logger.exception("Insert query could not be executed")
