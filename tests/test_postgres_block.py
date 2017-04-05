@@ -19,8 +19,18 @@ class TestInsertBlock(NIOBlockTestCase):
                                    'log_level': 'DEBUG'
                                    })
 
+        # mogrify always returns a bytestring
+        blk._cur.mogrify.side_effect = [b'("testval")']
         query = blk._build_insert_query_string({"testattr": "testval"})
-        self.assertEqual(query, "INSERT INTO tablename (testattr) VALUES (%s)")
+        self.assertEqual(query,
+                         'INSERT INTO tablename (testattr) VALUES ("testval")')
+
+        # test bulk query building
+        blk._cur.mogrify.side_effect = [b'("testval"),("testval")']
+        query = blk._build_insert_query_string([{"testattr": "testval"},
+                                                {"testattr": "testval"}])
+        self.assertEqual(query,
+            'INSERT INTO tablename (testattr) VALUES ("testval"),("testval")')
 
         self.assert_num_signals_notified(0)
         self.assertTrue(patched_conn.called)
