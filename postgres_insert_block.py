@@ -98,7 +98,7 @@ class PostgresInsert(PostgresBase):
             ).decode()
         else:
             raise TypeError("Could not build a query string with data "
-                            "of type {}. Need dict or list."
+                            "of type {}. Expecting dict or list."
                             .format(type(data)))
 
         query_base = 'INSERT INTO {} ({}) VALUES {}'
@@ -121,7 +121,7 @@ class PostgresInsert(PostgresBase):
             # TODO: this will create a new connection object which won't have
             # the transacton information. Is there a way to get that back?
             # TODO: what about _cur.closed?
-            if self._conn.closed:
+            if self._cur.closed or self._cur.connection.closed:
                 self.execute_with_retry(self.connect)
                 self._conn.rollback()
             else:
@@ -136,7 +136,7 @@ class PostgresInsert(PostgresBase):
             self._conn.commit()
         except InterfaceError:
             # connection has been closed for some reason, try to reconnect
-            if self._conn.closed:
+            if self._cur.closed or self._cur.connection.closed:
                 self.execute_with_retry(self.connect)
                 self._conn.commit()
             else:
