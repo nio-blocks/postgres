@@ -1,4 +1,5 @@
 from nio.properties import BoolProperty
+from psycopg2._psycopg import InterfaceError
 
 from .postgres_base_block import PostgresBase
 from collections import OrderedDict
@@ -14,9 +15,6 @@ class PostgresInsert(PostgresBase):
 
     bulk_insert = BoolProperty(title="Bulk Insert Incoming Signals",
                                default=False)
-
-    def __init__(self):
-        super().__init__()
 
     def _locked_process_signals(self, signals):
         """execute an insert command for all incoming signals"""
@@ -69,6 +67,9 @@ class PostgresInsert(PostgresBase):
         # execute the insert query. the query string is built with the data
         # already in it, so jsut execute that query here.
         self._cur.execute(self._build_insert_query_string(data))
+        if self._conn.notices:
+            self.logger.warning("Database returned the following notices: {}"
+                                .format(self._conn.notices))
 
     def _build_insert_query_string(self, data):
         """build an INSERT SQL query based on the incoming data. the keys are
@@ -111,12 +112,33 @@ class PostgresInsert(PostgresBase):
 
     def _rollback_transactions(self):
         """rollback any pending transactions, for use in undoing erroneous
-        commands
+        queries
         """
-        self._conn.rollback()
+        try:
+            self._conn.rollback()
+        except InterfaceError:
+            # connection has been closed for some reason, try to reconnect
+            # TODO: this will create a new connection object which won't have
+            # the transacton information. Is there a way to get that back?
+            # TODO: what about _cur.closed?
+            if self._conn.closed:
+                self.execute_with_retry(self.connect)
+                self._conn.rollback()
+            else:
+                self.logger.exception("Could not rollback transaction, "
+                                      "but the connection is still open")
 
     def _commit_transactions(self):
         """commit any successfully executed transactions, making the changes
         permanent in the table
         """
-        self._conn.commit()
+        try:
+            self._conn.commit()
+        except InterfaceError:
+            # connection has been closed for some reason, try to reconnect
+            if self._conn.closed:
+                self.execute_with_retry(self.connect)
+                self._conn.commit()
+            else:
+                self.logger.exception("Could not commit transaction, "
+                                      "but the connection is still open")
