@@ -54,7 +54,7 @@ class PostgresBase(LimitLock, Retry,  Block):
         # validate any user-given variables
         self._validate_string(self.table_name())
 
-        self.execute_with_retry(self.connect)
+        self.connect()
 
     def stop(self):
         self.logger.debug('closing postgres connection...')
