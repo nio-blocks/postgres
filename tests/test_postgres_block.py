@@ -4,7 +4,6 @@ from nio.testing.block_test_case import NIOBlockTestCase
 from psycopg2._psycopg import InterfaceError
 
 from ..postgres_insert_block import PostgresInsert
-from psycopg2.extensions import cursor
 
 
 class TestInsertBlock(NIOBlockTestCase):
