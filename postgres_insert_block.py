@@ -129,10 +129,9 @@ class PostgresInsert(PostgresBase):
             self.logger.exception("Could not execute commit")
 
     def before_retry(self, *args, **kwargs):
-        # TODO: this will create a new connection object which won't have
-        # the transacton information. Is there a way to get that back or
-        # is this an acceptable place to ignore insert information?
-        # get last processed signal by the block and retain that for the next
-        # successful try?
-        self.logger.debug("reconnecting before retry")
+        # when the new connection is made here the old one is torn down and
+        # loses the transaction information for the current transaction. This
+        # means the data will not be inserted for this transaction.
+        self.logger.warning("reconnecting to DB before retry, this will "
+                            "forfeit the current transaction")
         self.connect()
