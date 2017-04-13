@@ -1,7 +1,10 @@
 from unittest.mock import patch, MagicMock
 from nio.signal.base import Signal
 from nio.testing.block_test_case import NIOBlockTestCase
+from psycopg2._psycopg import InterfaceError
+
 from ..postgres_insert_block import PostgresInsert
+from psycopg2.extensions import cursor
 
 
 class TestInsertBlock(NIOBlockTestCase):
@@ -144,3 +147,33 @@ class TestInsertBlock(NIOBlockTestCase):
         self.assertEqual(patched_commit.call_count, 2)
 
         blk.stop()
+
+    @patch("blocks.postgres.postgres_base_block.connect")
+    def test_retry_on_closed_connection(self, patched_conn):
+        blk = PostgresInsert()
+
+        self.configure_block(blk, {'host': '127.0.0.1',
+                                   'port': 5432,
+                                   'db_name': 'dbname',
+                                   'table_name': 'tablename',
+                                   'log_level': 'DEBUG',
+                                   'bulk_insert': True,
+                                   "retry_options": {"max_retry": 1,
+                                                     "multiplier": 0.005}
+                                   })
+        blk._cur.mogrify.side_effect = [b'("testval1")', b'("testval2")']
+
+        blk.start()
+        # process one signal, this should go through successfully and not
+        # have to reconnect
+        blk.process_signals([Signal({'valid_key': 1})])
+        self.assertEqual(patched_conn.call_count, 1)
+        self.assertEqual(blk._conn.commit.call_count, 1)
+
+        # now the connection has been closed, the block should retry the commit
+        # once which will call connect once more, for a total of two.
+        blk._conn.commit.side_effect = [InterfaceError, True]
+        blk.process_signals([Signal({'valid_key': 2})])
+        self.assertEqual(patched_conn.call_count, 2)
+        # +1 from the previous signal
+        self.assertEqual(blk._conn.commit.call_count, 3)

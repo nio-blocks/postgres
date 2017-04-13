@@ -115,15 +115,15 @@ class PostgresInsert(PostgresBase):
         queries
         """
         try:
-            self._conn.rollback()
+            self.execute_with_retry(self._conn.rollback)
         except InterfaceError:
             # connection has been closed for some reason, try to reconnect
             # TODO: this will create a new connection object which won't have
-            # the transacton information. Is there a way to get that back?
-            # TODO: what about _cur.closed?
+            # the transacton information. Is there a way to get that back or
+            # is this an acceptable place to ignore insert information?
             if self._cur.closed or self._cur.connection.closed:
-                self.execute_with_retry(self.connect)
-                self._conn.rollback()
+                self.logger.warning("unable to rollback transaction, could "
+                                    "not reconnect on retry")
             else:
                 self.logger.exception("Could not rollback transaction, "
                                       "but the connection is still open")
@@ -133,12 +133,16 @@ class PostgresInsert(PostgresBase):
         permanent in the table
         """
         try:
-            self._conn.commit()
+            self.execute_with_retry(self._conn.commit)
         except InterfaceError:
             # connection has been closed for some reason, try to reconnect
             if self._cur.closed or self._cur.connection.closed:
-                self.execute_with_retry(self.connect)
-                self._conn.commit()
+                self.logger.warning("unable to commit transaction, could not "
+                                    "reconnect on retry")
             else:
                 self.logger.exception("Could not commit transaction, "
                                       "but the connection is still open")
+
+    def before_retry(self, *args, **kwargs):
+        self.logger.debug("reconnecting before retry")
+        self.connect()
