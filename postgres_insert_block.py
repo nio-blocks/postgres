@@ -1,5 +1,5 @@
 from nio.properties import BoolProperty
-from psycopg2._psycopg import InterfaceError
+from psycopg2._psycopg import Error as Psycopg2Error
 
 from .postgres_base_block import PostgresBase
 from collections import OrderedDict
@@ -112,21 +112,12 @@ class PostgresInsert(PostgresBase):
 
     def _rollback_transactions(self):
         """rollback any pending transactions, for use in undoing erroneous
-        queries
+        queries. No changes will be made to the table.
         """
         try:
             self.execute_with_retry(self._conn.rollback)
-        except InterfaceError:
-            # connection has been closed for some reason, try to reconnect
-            # TODO: this will create a new connection object which won't have
-            # the transacton information. Is there a way to get that back or
-            # is this an acceptable place to ignore insert information?
-            if self._cur.closed or self._cur.connection.closed:
-                self.logger.warning("unable to rollback transaction, could "
-                                    "not reconnect on retry")
-            else:
-                self.logger.exception("Could not rollback transaction, "
-                                      "but the connection is still open")
+        except Psycopg2Error:
+            self.logger.exception("Could not execute rollback")
 
     def _commit_transactions(self):
         """commit any successfully executed transactions, making the changes
@@ -134,15 +125,14 @@ class PostgresInsert(PostgresBase):
         """
         try:
             self.execute_with_retry(self._conn.commit)
-        except InterfaceError:
-            # connection has been closed for some reason, try to reconnect
-            if self._cur.closed or self._cur.connection.closed:
-                self.logger.warning("unable to commit transaction, could not "
-                                    "reconnect on retry")
-            else:
-                self.logger.exception("Could not commit transaction, "
-                                      "but the connection is still open")
+        except Psycopg2Error:
+            self.logger.exception("Could not execute commit")
 
     def before_retry(self, *args, **kwargs):
+        # TODO: this will create a new connection object which won't have
+        # the transacton information. Is there a way to get that back or
+        # is this an acceptable place to ignore insert information?
+        # get last processed signal by the block and retain that for the next
+        # successful try?
         self.logger.debug("reconnecting before retry")
         self.connect()
