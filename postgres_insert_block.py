@@ -1,4 +1,5 @@
 from nio.properties import BoolProperty
+from psycopg2._psycopg import Error as Psycopg2Error
 
 from .postgres_base_block import PostgresBase
 from collections import OrderedDict
@@ -14,9 +15,6 @@ class PostgresInsert(PostgresBase):
 
     bulk_insert = BoolProperty(title="Bulk Insert Incoming Signals",
                                default=False)
-
-    def __init__(self):
-        super().__init__()
 
     def _locked_process_signals(self, signals):
         """execute an insert command for all incoming signals"""
@@ -69,6 +67,9 @@ class PostgresInsert(PostgresBase):
         # execute the insert query. the query string is built with the data
         # already in it, so jsut execute that query here.
         self._cur.execute(self._build_insert_query_string(data))
+        if self._conn.notices:
+            self.logger.warning("Database returned the following notices: {}"
+                                .format(self._conn.notices))
 
     def _build_insert_query_string(self, data):
         """build an INSERT SQL query based on the incoming data. the keys are
@@ -97,7 +98,7 @@ class PostgresInsert(PostgresBase):
             ).decode()
         else:
             raise TypeError("Could not build a query string with data "
-                            "of type {}. Need dict or list."
+                            "of type {}. Expecting dict or list."
                             .format(type(data)))
 
         query_base = 'INSERT INTO {} ({}) VALUES {}'
@@ -111,12 +112,26 @@ class PostgresInsert(PostgresBase):
 
     def _rollback_transactions(self):
         """rollback any pending transactions, for use in undoing erroneous
-        commands
+        queries. No changes will be made to the table.
         """
-        self._conn.rollback()
+        try:
+            self.execute_with_retry(self._conn.rollback)
+        except Psycopg2Error:
+            self.logger.exception("Could not execute rollback")
 
     def _commit_transactions(self):
         """commit any successfully executed transactions, making the changes
         permanent in the table
         """
-        self._conn.commit()
+        try:
+            self.execute_with_retry(self._conn.commit)
+        except Psycopg2Error:
+            self.logger.exception("Could not execute commit")
+
+    def before_retry(self, *args, **kwargs):
+        # when the new connection is made here the old one is torn down and
+        # loses the transaction information for the current transaction. This
+        # means the data will not be inserted for this transaction.
+        self.logger.warning("reconnecting to DB before retry, this will "
+                            "forfeit the current transaction")
+        self.connect()

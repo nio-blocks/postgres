@@ -3,7 +3,7 @@ from psycopg2 import connect
 
 from nio.block.base import Block
 from nio.command import command
-from nio.block.mixins import LimitLock
+from nio.block.mixins import LimitLock, Retry
 from nio.properties import (VersionProperty, StringProperty, IntProperty,
                             BoolProperty, PropertyHolder, ObjectProperty)
 from nio.util.discovery import not_discoverable
@@ -15,10 +15,10 @@ class AuthCreds(PropertyHolder):
 
 
 @not_discoverable
-@command('connection_status', method='connection_status')
+@command('connected', method='connected')
 @command('reconnect', method='connect')
 @command('disconnect', method='disconnect')
-class PostgresBase(LimitLock, Block):
+class PostgresBase(LimitLock, Retry,  Block):
     """A block for communicating with an postgres database.
 
     Properties:
@@ -68,8 +68,8 @@ class PostgresBase(LimitLock, Block):
     def _locked_process_signals(self, signals):
         pass
 
-    def connection_status(self):
-        return 'Connected' if self._conn.status else 'Not connected'
+    def connected(self):
+        return self._conn.status
 
     def connect(self):
         """connect to the database and create the cursor object for executing
