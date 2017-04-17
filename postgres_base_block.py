@@ -1,17 +1,25 @@
 import re
+from enum import Enum
+
 from psycopg2 import connect
 
 from nio.block.base import Block
 from nio.command import command
 from nio.block.mixins import LimitLock, Retry
 from nio.properties import (VersionProperty, StringProperty, IntProperty,
-                            BoolProperty, PropertyHolder, ObjectProperty)
+                            BoolProperty, PropertyHolder, ObjectProperty,
+                            SelectProperty, FileProperty)
 from nio.util.discovery import not_discoverable
 
 
 class AuthCreds(PropertyHolder):
     username = StringProperty(title="Username", default="", allow_none=True)
     password = StringProperty(title="Password", default="", allow_none=True)
+
+
+class SSLOption(Enum):
+    require = 'require'
+    prefer = 'prefer'
 
 
 @not_discoverable
@@ -30,6 +38,8 @@ class PostgresBase(LimitLock, Retry,  Block):
                          on.
         commit_all(bool): hidden attribute that configures whether to commit
                           valid transactions
+        ssl_mode(select): whether to require or prefer an SSL connection.
+        ssl_cert(file): path to SSL cert to use for an SSL connection.
     """
 
     version = VersionProperty('1.0.0')
@@ -42,6 +52,12 @@ class PostgresBase(LimitLock, Retry,  Block):
     table_name = StringProperty(title="Table Name", allow_none=False)
     commit_all = BoolProperty(title="Commit transactions", default=True,
                               visible=False)
+    ssl_mode = SelectProperty(
+        SSLOption,
+        default=SSLOption.prefer,
+        title='SSL Option'
+    )
+    ssl_cert = FileProperty(title="SSL cert path", default='/etc/ssl_cert.pem')
 
     def __init__(self):
         super().__init__()
@@ -80,7 +96,9 @@ class PostgresBase(LimitLock, Retry,  Block):
                              user=self.creds().username(),
                              password=self.creds().password(),
                              host=self.host(),
-                             port=self.port())
+                             port=self.port(),
+                             sslmode=self.ssl_mode().value,
+                             sslcert=self.ssl_cert())
         self._cur = self._conn.cursor()
 
     def disconnect(self):
