@@ -18,8 +18,12 @@ class AuthCreds(PropertyHolder):
 
 
 class SSLOption(Enum):
-    require = 'require'
+    disable = 'disable'
+    allow = 'allow'
     prefer = 'prefer'
+    require = 'require'
+    verify_ca = 'verify-ca'
+    verify_full = 'verify-full'
 
 
 @not_discoverable
@@ -98,7 +102,7 @@ class PostgresBase(LimitLock, Retry,  Block):
                              host=self.host(),
                              port=self.port(),
                              sslmode=self.ssl_mode().value,
-                             sslcert=self.ssl_cert())
+                             sslrootcert=self.ssl_cert().value)
         self._cur = self._conn.cursor()
 
     def disconnect(self):
