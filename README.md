@@ -13,7 +13,7 @@ Properties
 -  commit_all(bool): hidden attribute that configures whether to commit valid transactions
 -  bulk_insert(bool): insert signals individually or insert the whole incoming list in one insert
 -  ssl_mode(select): select the SSL behavior for transferring data.
--  ssl_cert(file): if ssl_mode is "verify-full", this is the path to the cert file used to verify the server.
+-  ssl_cert(file): if ssl_mode is "verify-full" or "verify-ca", this is the path to the cert file used to verify the server.
 
 
 SSL mode options explained:
