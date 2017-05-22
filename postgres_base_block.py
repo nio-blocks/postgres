@@ -76,6 +76,13 @@ class PostgresBase(LimitLock, Retry,  Block):
 
         self.connect()
 
+        # create list of column names for insertion validation
+        self.column_names = []
+        self._cur.execute("SELECT column_name FROM information_schema.columns \
+                          WHERE table_name = {}".format(self.table_name))
+        self.column_names = [row[0] for row in self._cur]
+
+
     def stop(self):
         self.logger.debug('closing postgres connection...')
         self.disconnect()

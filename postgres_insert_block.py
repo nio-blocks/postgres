@@ -60,9 +60,11 @@ class PostgresInsert(PostgresBase):
             # grab the keys of the first signal
             for key in data[0].keys():
                 self._validate_string(key)
+                self._validate_column_name(key)
         else:
             for key in data.keys():
                 self._validate_string(key)
+                self._validate_column_name(key)
 
         # execute the insert query. the query string is built with the data
         # already in it, so jsut execute that query here.
@@ -135,3 +137,11 @@ class PostgresInsert(PostgresBase):
         self.logger.warning("reconnecting to DB before retry, this will "
                             "forfeit the current transaction")
         self.connect()
+
+    def _validate_column_name(self, key):
+        # make sure user input column name is exactly equal to one of the
+        # column names queried in PostgresBase.configure()
+
+        if key not in self.column_names:
+            raise ValueError("{} is not a valid column in the {} table."
+                             .format(key, self.table_name))
