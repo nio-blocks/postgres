@@ -137,11 +137,3 @@ class PostgresInsert(PostgresBase):
         self.logger.warning("reconnecting to DB before retry, this will "
                             "forfeit the current transaction")
         self.connect()
-
-    def _validate_column_name(self, key):
-        # make sure user input column name is exactly equal to one of the
-        # column names queried in PostgresBase.configure()
-
-        if key not in self.column_names:
-            raise ValueError("{} is not a valid column in the {} table."
-                             .format(key, self.table_name))

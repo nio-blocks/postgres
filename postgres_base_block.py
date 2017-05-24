@@ -67,6 +67,7 @@ class PostgresBase(LimitLock, Retry,  Block):
         super().__init__()
         self._conn = None
         self._cur = None
+        self.column_names = []
 
     def configure(self, context):
         super().configure(context)
@@ -77,7 +78,6 @@ class PostgresBase(LimitLock, Retry,  Block):
         self.connect()
 
         # create list of column names for insertion validation
-        self.column_names = []
         self._cur.execute("SELECT column_name FROM information_schema.columns \
                           WHERE table_name = '{}';".format(self.table_name))
         self.column_names = [row[0] for row in self._cur]
@@ -116,6 +116,14 @@ class PostgresBase(LimitLock, Retry,  Block):
         """disconnect from the database and close the cursor object"""
         self._cur.close()
         self._conn.close()
+
+    def _validate_column_name(self, key):
+        # make sure user input column name is exactly equal to one of the
+        # column names queried in PostgresBase.configure()
+
+        if key not in self.column_names:
+            raise ValueError("{} is not a valid column in the {} table."
+                             .format(key, self.table_name))
 
     @staticmethod
     def _validate_string(string):
