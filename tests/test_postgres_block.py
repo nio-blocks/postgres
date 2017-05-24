@@ -73,6 +73,10 @@ class TestInsertBlock(NIOBlockTestCase):
                     'test$name', 'test:name::']:
             self.assertRaises(ValueError, blk.execute_insert, {key: "testval"})
 
+        blk.column_names = ['test', 'testt', 'testtt']
+        for key in ['nottest', 'nottestt', 'nottesttt']:
+            self.assertRaises(ValueError, blk.execute_insert, {key: 'val4tst'})
+
     @patch.object(PostgresInsert, "_commit_transactions")
     @patch.object(PostgresInsert, "_rollback_transactions")
     @patch.object(PostgresInsert, "connect")
@@ -112,7 +116,7 @@ class TestInsertBlock(NIOBlockTestCase):
                                    'table_name': 'tablename',
                                    'log_level': 'DEBUG'
                                    })
-
+        blk.column_names = ['valid_key']
         blk.start()
 
         # block should not rollback when receiving a valid key and commit the
@@ -136,7 +140,7 @@ class TestInsertBlock(NIOBlockTestCase):
                                    'log_level': 'DEBUG',
                                    'commit_all': False
                                    })
-
+        blk.column_names = ['valid_key']
         blk.start()
 
         # block should commit for every signal it inserts when commit_all is
@@ -161,7 +165,7 @@ class TestInsertBlock(NIOBlockTestCase):
                                                      "multiplier": 0.005}
                                    })
         blk._cur.mogrify.side_effect = [b'("testval1")', b'("testval2")']
-
+        blk.column_names = ['valid_key']
         blk.start()
         # process one signal, this should go through successfully and not
         # have to reconnect

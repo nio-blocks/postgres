@@ -60,9 +60,11 @@ class PostgresInsert(PostgresBase):
             # grab the keys of the first signal
             for key in data[0].keys():
                 self._validate_string(key)
+                self._validate_column_name(key)
         else:
             for key in data.keys():
                 self._validate_string(key)
+                self._validate_column_name(key)
 
         # execute the insert query. the query string is built with the data
         # already in it, so jsut execute that query here.
