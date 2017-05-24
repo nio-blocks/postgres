@@ -79,7 +79,7 @@ class PostgresBase(LimitLock, Retry,  Block):
         # create list of column names for insertion validation
         self.column_names = []
         self._cur.execute("SELECT column_name FROM information_schema.columns \
-                          WHERE table_name = {}".format(self.table_name))
+                          WHERE table_name = '{}';".format(self.table_name))
         self.column_names = [row[0] for row in self._cur]
 
 

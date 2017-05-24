@@ -73,6 +73,10 @@ class TestInsertBlock(NIOBlockTestCase):
                     'test$name', 'test:name::']:
             self.assertRaises(ValueError, blk.execute_insert, {key: "testval"})
 
+        blk.column_names = ['test', 'testt', 'testtt']
+        for key in ['nottest', 'nottestt', 'nottesttt']:
+            self.assertRaises(ValueError, blk.execute_insert, {key: 'val4tst'})
+
     @patch.object(PostgresInsert, "_commit_transactions")
     @patch.object(PostgresInsert, "_rollback_transactions")
     @patch.object(PostgresInsert, "connect")
