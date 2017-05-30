@@ -1,8 +1,9 @@
-from nio.properties import BoolProperty
-from psycopg2._psycopg import Error as Psycopg2Error
+from psycopg2._psycopg import InterfaceError
 
 from .postgres_base_block import PostgresBase
 from collections import OrderedDict
+
+from nio.properties import BoolProperty
 
 
 class PostgresInsert(PostgresBase):
@@ -117,18 +118,18 @@ class PostgresInsert(PostgresBase):
         queries. No changes will be made to the table.
         """
         try:
-            self.execute_with_retry(self._conn.rollback)
-        except Psycopg2Error:
-            self.logger.exception("Could not execute rollback")
+            self._conn.rollback()
+        except InterfaceError:
+            self.connect()
 
     def _commit_transactions(self):
         """commit any successfully executed transactions, making the changes
         permanent in the table
         """
         try:
-            self.execute_with_retry(self._conn.commit)
-        except Psycopg2Error:
-            self.logger.exception("Could not execute commit")
+            self._conn.commit()
+        except InterfaceError:
+            self.connect()
 
     def before_retry(self, *args, **kwargs):
         # when the new connection is made here the old one is torn down and
