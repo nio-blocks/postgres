@@ -175,6 +175,9 @@ class TestInsertBlock(NIOBlockTestCase):
         # now the connection has been closed, the block should retry the commit
         # once which will call connect once more, for a total of two.
         blk._conn.commit.side_effect = [InterfaceError, True]
+        blk._conn.rollback.side_effect = [InterfaceError, True]
+        blk._cur.execute.side_effect = [InterfaceError, True]
+        patched_conn.side_effect = [InterfaceError, MagicMock()]
+
         blk.process_signals([Signal({'valid_key': 2})])
-        self.assertEqual(patched_conn.call_count, 2)
-        self.assertEqual(blk._conn.commit.call_count, 2)
+        self.assertEqual(patched_conn.call_count, 3)
