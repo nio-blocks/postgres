@@ -25,7 +25,6 @@ psycopg2
 
 Commands
 ----------------
--  connected: True if current connection succeeded and is active
 -  disconnect: tear down current connection
 -  reconnect: reconnect to host specified in config
 
