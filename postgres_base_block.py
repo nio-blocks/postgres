@@ -87,8 +87,8 @@ class PostgresBase(LimitLock, Retry,  Block):
         super().stop()
 
     def process_signals(self, signals):
-        self.execute_with_retry(self.execute_with_lock,
-                                self._locked_process_signals, 100, signals=signals)
+        self.execute_with_lock(self.execute_with_retry, 100,
+                               self._locked_process_signals, signals=signals)
 
     def _locked_process_signals(self, signals):
         pass
