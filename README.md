@@ -3,21 +3,21 @@ PostgresInsert
 
 Inserts signal data into a postgres database/table
 
+SSL mode options explained: https://www.postgresql.org/docs/current/static/libpq-ssl.html
+
 Properties
 --------------
--  host(str): hostname of the database to connect to
--  port(int): postgres port on the host to connect to
--  db_name(str): name of the database on the host
--  creds(object): username and password for the host database
--  table_name(str): name of the table on the database to execute commands on.
--  commit_all(bool): hidden attribute that configures whether to commit valid transactions
--  bulk_insert(bool): insert signals individually or insert the whole incoming list in one insert
--  ssl_mode(select): select the SSL behavior for transferring data.
--  ssl_cert(file): if ssl_mode is "verify-full" or "verify-ca", this is the path to the cert file used to verify the server.
+-  host(type:str): hostname of the database to connect to
+-  port(type:int): postgres port on the host to connect to
+-  db_name(type:str): name of the database on the host
+-  creds(type:object): username and password for the host database
+-  table_name(type:str): name of the table on the database to execute commands on.
+-  commit_all(type:bool): hidden attribute that configures whether to commit valid transactions
+-  bulk_insert(type:bool): insert signals individually or insert the whole incoming list in one insert
+-  ssl_mode(type:select): select the SSL behavior for transferring data.
+-  ssl_cert(type:file): if ssl_mode is "verify-full" or "verify-ca", this is the path to the cert file used to verify the server.
 
 
-SSL mode options explained:
-https://www.postgresql.org/docs/current/static/libpq-ssl.html
 
 Dependencies
 ----------------
