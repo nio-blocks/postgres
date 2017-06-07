@@ -154,7 +154,6 @@ class TestInsertBlock(NIOBlockTestCase):
     @patch("blocks.postgres.postgres_base_block.connect")
     def test_retry_on_closed_connection(self, patched_conn):
         blk = PostgresInsert()
-
         self.configure_block(blk, {'host': '127.0.0.1',
                                    'port': 5432,
                                    'db_name': 'dbname',
@@ -176,7 +175,9 @@ class TestInsertBlock(NIOBlockTestCase):
         # now the connection has been closed, the block should retry the commit
         # once which will call connect once more, for a total of two.
         blk._conn.commit.side_effect = [InterfaceError, True]
+        blk._conn.rollback.side_effect = [InterfaceError, True]
+        blk._cur.execute.side_effect = [InterfaceError, True]
+        patched_conn.side_effect = [InterfaceError, MagicMock()]
+
         blk.process_signals([Signal({'valid_key': 2})])
-        self.assertEqual(patched_conn.call_count, 2)
-        # +1 from the previous signal
-        self.assertEqual(blk._conn.commit.call_count, 3)
+        self.assertEqual(patched_conn.call_count, 3)

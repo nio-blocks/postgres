@@ -27,7 +27,6 @@ class SSLOption(Enum):
 
 
 @not_discoverable
-@command('connected', method='connected')
 @command('reconnect', method='connect')
 @command('disconnect', method='disconnect')
 class PostgresBase(LimitLock, Retry,  Block):
@@ -78,10 +77,9 @@ class PostgresBase(LimitLock, Retry,  Block):
         self.connect()
 
         # create list of column names for insertion validation
-        self._cur.execute("SELECT column_name FROM information_schema.columns \
-                          WHERE table_name = '{}';".format(self.table_name))
+        self._cur.execute("SELECT column_name FROM information_schema.columns "
+                          "WHERE table_name = '{}';".format(self.table_name()))
         self.column_names = [row[0] for row in self._cur]
-
 
     def stop(self):
         self.logger.debug('closing postgres connection...')
@@ -89,14 +87,11 @@ class PostgresBase(LimitLock, Retry,  Block):
         super().stop()
 
     def process_signals(self, signals):
-        self.execute_with_lock(
-            self._locked_process_signals, 100, signals=signals)
+        self.execute_with_lock(self.execute_with_retry, 100,
+                               self._locked_process_signals, signals=signals)
 
     def _locked_process_signals(self, signals):
         pass
-
-    def connected(self):
-        return self._conn.status
 
     def connect(self):
         """connect to the database and create the cursor object for executing
@@ -122,8 +117,9 @@ class PostgresBase(LimitLock, Retry,  Block):
         # column names queried in PostgresBase.configure()
 
         if key not in self.column_names:
-            raise ValueError("{} is not a valid column in the {} table."
-                             .format(key, self.table_name))
+            raise ValueError("{} is not a valid column in the {} table. "
+                             "Valid columns: {}"
+                             .format(key, self.table_name(), self.column_names))
 
     @staticmethod
     def _validate_string(string):
