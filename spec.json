@@ -1,61 +1,62 @@
 {
-  "nio/PostgresInsert": {
-    "Version": "1.0.0",
-    "Description": "Inserts signal data into a postgres database/table\nSSL mode options explained: https://www.postgresql.org/docs/current/static/libpq-ssl.html",
-    "Input": "Any list of signals, where the keys of the incoming data are column names,\nand the values are the values needing to be inserted into those names.",
-    "Category": "Database",
-    "Dependencies": [
-      "psycopg2"
-    ],
-    "Commands": {
-      "connected": {
-        "description": "True if current connection succeeded and is active"
-      },
-      "disconnect": {
-        "description": "tear down current connection"
-      },
-      "reconnect": {
-        "description": "reconnect to host specified in config"
-      }
-    },
-    "Output": "None",
-    "Properties": {
-      "db_name": {
-        "type": "str",
-        "description": "name of the database on the host"
-      },
-      "table_name": {
-        "type": "str",
-        "description": "name of the table on the database to execute commands on."
-      },
-      "bulk_insert": {
-        "type": "bool",
-        "description": "insert signals individually or insert the whole incoming list in one insert"
-      },
-      "commit_all": {
-        "type": "bool",
-        "description": "hidden attribute that configures whether to commit valid transactions"
-      },
-      "port": {
-        "type": "int",
-        "description": "postgres port on the host to connect to"
-      },
-      "host": {
-        "type": "str",
-        "description": "hostname of the database to connect to"
-      },
-      "ssl_mode": {
-        "type": "select",
-        "description": "select the SSL behavior for transferring data."
-      },
-      "creds": {
-        "type": "object",
-        "description": "username and password for the host database"
-      },
-      "ssl_cert": {
-        "type": "file",
-        "description": "if ssl_mode is \"verify-full\" or \"verify-ca\", this is the path to the cert file used to verify the server."
-      }
+    "nio/PostgresInsert": {
+        "Output": {
+            "Description": "None"
+        },
+        "Version": "1.0.0",
+        "Commands": {
+            "connected": {
+                "description": "True if current connection succeeded and is active"
+            },
+            "reconnect": {
+                "description": "reconnect to host specified in config"
+            },
+            "disconnect": {
+                "description": "tear down current connection"
+            }
+        },
+        "Description": "Inserts signal data into a postgres database/table\nSSL mode options explained: https://www.postgresql.org/docs/current/static/libpq-ssl.html",
+        "Input": {
+            "Description": "Any list of signals, where the keys of the incoming data are column names,\nand the values are the values needing to be inserted into those names."
+        },
+        "Properties": {
+            "table_name": {
+                "description": "name of the table on the database to execute commands on.",
+                "type": "str"
+            },
+            "port": {
+                "description": "postgres port on the host to connect to",
+                "type": "int"
+            },
+            "ssl_mode": {
+                "description": "select the SSL behavior for transferring data.",
+                "type": "select"
+            },
+            "host": {
+                "description": "hostname of the database to connect to",
+                "type": "str"
+            },
+            "commit_all": {
+                "description": "hidden attribute that configures whether to commit valid transactions",
+                "type": "bool"
+            },
+            "creds": {
+                "description": "username and password for the host database",
+                "type": "object"
+            },
+            "bulk_insert": {
+                "description": "insert signals individually or insert the whole incoming list in one insert",
+                "type": "bool"
+            },
+            "db_name": {
+                "description": "name of the database on the host",
+                "type": "str"
+            },
+            "ssl_cert": {
+                "description": "if ssl_mode is \"verify-full\" or \"verify-ca\", this is the path to the cert file used to verify the server.",
+                "type": "file"
+            }
+        },
+        "Category": "Database"
     }
-  }
 }
