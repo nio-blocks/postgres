@@ -3,6 +3,7 @@ from nio.signal.base import Signal
 from nio.testing.block_test_case import NIOBlockTestCase
 from psycopg2._psycopg import InterfaceError
 
+from ..postgres_base_block import PostgresBase
 from ..postgres_insert_block import PostgresInsert
 
 
@@ -151,7 +152,7 @@ class TestInsertBlock(NIOBlockTestCase):
 
         blk.stop()
 
-    @patch("blocks.postgres.postgres_base_block.connect")
+    @patch(PostgresBase.__module__ + ".connect")
     def test_retry_on_closed_connection(self, patched_conn):
         blk = PostgresInsert()
         self.configure_block(blk, {'host': '127.0.0.1',
