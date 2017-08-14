@@ -1,10 +1,92 @@
 {
   "nio/PostgresInsert": {
-    "version": "0.0.1",
-    "description": "",
-    "inputs": {},
+    "version": "1.0.0",
+    "description": "Inserts signal data into a postgres database/table",
+    "properties": {
+      "bulk_insert": {
+        "title": "Bulk Insert Incoming Signals",
+        "type": "BoolType",
+        "description": "insert signals individually or insert the whole incoming list in one insert",
+        "default": false
+      },
+      "commit_all": {
+        "title": "Commit transactions",
+        "type": "BoolType",
+        "description": "hidden attribute that configures whether to commit valid transactions",
+        "default": true
+      },
+      "creds": {
+        "title": "Credentials",
+        "type": "ObjectType",
+        "description": "username and password for the host database",
+        "default": {
+          "username": "",
+          "password": ""
+        }
+      },
+      "db_name": {
+        "title": "DB Name",
+        "type": "StringType",
+        "description": "name of the database on the host",
+        "default": null
+      },
+      "host": {
+        "title": "Host",
+        "type": "StringType",
+        "description": "hostname of the database to connect to",
+        "default": "[[POSTGRES_HOST]]"
+      },
+      "port": {
+        "title": "Port",
+        "type": "IntType",
+        "description": "postgres port on the host to connect to",
+        "default": "[[POSTGRES_PORT]]"
+      },
+      "retry_options": {
+        "title": "Retry Options",
+        "type": "ObjectType",
+        "description": "configurable retry options for inserting",
+        "default": {
+          "indefinite": false,
+          "max_retry": 5,
+          "multiplier": 1,
+          "strategy": "linear"
+        }
+      },
+      "ssl_cert": {
+        "title": "SSL cert path",
+        "type": "FileType",
+        "description": "if ssl_mode is 'verify-full' or 'verify-ca', this is the path to the cert file used to verify the server.",
+        "default": "/etc/ssl_cert.pem"
+      },
+      "ssl_mode": {
+        "title": "SSL Option",
+        "type": "SelectType",
+        "description": "select the SSL behavior for transferring data.",
+        "default": "prefer"
+      },
+      "table_name": {
+        "title": "Table Name",
+        "type": "StringType",
+        "description": "name of the table on the database to execute commands on.",
+        "default": null
+      }
+    },
+    "inputs": {
+      "default": {
+        "description": "Any list of signals, where the keys of the incoming data are column names, and the values are the values needing to be inserted into those names."
+      }
+    },
     "outputs": {},
-    "properties": {},
-    "commands": {}
+    "commands": {
+      "disconnect": {
+        "params": {},
+        "description": "disconnect from the server"
+      },
+      "reconnect": {
+        "params": {},
+        "description": "reconnect to the server"
+      }
+    }
   }
 }
