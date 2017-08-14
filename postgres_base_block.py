@@ -119,7 +119,8 @@ class PostgresBase(LimitLock, Retry,  Block):
         if key not in self.column_names:
             raise ValueError("{} is not a valid column in the {} table. "
                              "Valid columns: {}"
-                             .format(key, self.table_name(), self.column_names))
+                             .format(key, self.table_name(),
+                                     self.column_names))
 
     @staticmethod
     def _validate_string(string):

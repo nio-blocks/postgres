@@ -1,7 +1,8 @@
 from unittest.mock import patch, MagicMock
+from psycopg2._psycopg import InterfaceError
+
 from nio.signal.base import Signal
 from nio.testing.block_test_case import NIOBlockTestCase
-from psycopg2._psycopg import InterfaceError
 
 from ..postgres_base_block import PostgresBase
 from ..postgres_insert_block import PostgresInsert
@@ -32,7 +33,8 @@ class TestInsertBlock(NIOBlockTestCase):
         blk._cur.mogrify.side_effect = [b'("testval"),("testval")']
         query = blk._build_insert_query_string([{"testattr": "testval"},
                                                 {"testattr": "testval"}])
-        self.assertEqual(query,
+        self.assertEqual(
+            query,
             'INSERT INTO tablename (testattr) VALUES ("testval"),("testval")')
 
         self.assert_num_signals_notified(0)
