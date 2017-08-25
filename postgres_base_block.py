@@ -3,7 +3,7 @@ from enum import Enum
 
 from psycopg2 import connect
 
-from nio.block.base import Block
+from nio import TerminatorBlock
 from nio.command import command
 from nio.block.mixins import LimitLock, Retry
 from nio.properties import (VersionProperty, StringProperty, IntProperty,
@@ -29,7 +29,7 @@ class SSLOption(Enum):
 @not_discoverable
 @command('reconnect', method='connect')
 @command('disconnect', method='disconnect')
-class PostgresBase(LimitLock, Retry,  Block):
+class PostgresBase(LimitLock, Retry,  TerminatorBlock):
     """A block for communicating with an postgres database.
 
     Properties:
