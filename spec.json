@@ -1,27 +1,24 @@
 {
   "nio/PostgresInsert": {
     "version": "1.0.0",
-    "description": "Inserts signal data into a postgres database/table",
-    "categories": [
-      "Database"
-    ],
+    "description": "The PostgresInsert block inserts incoming signal data into a postgres database/table.",
     "properties": {
       "bulk_insert": {
         "title": "Bulk Insert Incoming Signals",
         "type": "BoolType",
-        "description": "insert signals individually or insert the whole incoming list in one insert",
+        "description": "If `False` (unchecked), the block will insert each incoming signal individually. If `True`, the block will insert the whole incoming list in one insert.",
         "default": false
       },
       "commit_all": {
         "title": "Commit transactions",
         "type": "BoolType",
-        "description": "hidden attribute that configures whether to commit valid transactions",
+        "description": "Hidden attribute, defaults to `True`. When `True`, block will commit all valid transactions.",
         "default": true
       },
       "creds": {
         "title": "Credentials",
         "type": "ObjectType",
-        "description": "username and password for the host database",
+        "description": "Username and password for the host database.",
         "default": {
           "username": "",
           "password": ""
@@ -30,25 +27,25 @@
       "db_name": {
         "title": "DB Name",
         "type": "StringType",
-        "description": "name of the database on the host",
+        "description": "Name of the database on the host.",
         "default": null
       },
       "host": {
         "title": "Host",
         "type": "StringType",
-        "description": "hostname of the database to connect to",
+        "description": "Host address of the database to connect to.",
         "default": "[[POSTGRES_HOST]]"
       },
       "port": {
         "title": "Port",
         "type": "IntType",
-        "description": "postgres port on the host to connect to",
+        "description": "Postgres port on the host to connect to.",
         "default": "[[POSTGRES_PORT]]"
       },
       "retry_options": {
         "title": "Retry Options",
         "type": "ObjectType",
-        "description": "configurable retry options for inserting",
+        "description": "A selection of options to choose from when retrying to make a connection.",
         "default": {
           "indefinite": false,
           "max_retry": 5,
@@ -59,19 +56,19 @@
       "ssl_cert": {
         "title": "SSL cert path",
         "type": "FileType",
-        "description": "if ssl_mode is 'verify-full' or 'verify-ca', this is the path to the cert file used to verify the server.",
+        "description": "If **SSL option** is 'verify-full' or 'verify-ca', this is the path to the cert file used to verify the server.",
         "default": "/etc/ssl_cert.pem"
       },
       "ssl_mode": {
         "title": "SSL Option",
         "type": "SelectType",
-        "description": "select the SSL behavior for transferring data.",
+        "description": "The type of SSL behavior for verifying the exchange of data between the service and Postgres database.",
         "default": "prefer"
       },
       "table_name": {
         "title": "Table Name",
         "type": "StringType",
-        "description": "name of the table on the database to execute commands on.",
+        "description": "Name of the table on the database to execute commands on.",
         "default": null
       }
     },
@@ -84,11 +81,11 @@
     "commands": {
       "disconnect": {
         "params": {},
-        "description": "disconnect from the server"
+        "description": "Disconnect from the server Postgres is hosted on."
       },
       "reconnect": {
         "params": {},
-        "description": "reconnect to the server"
+        "description": "Reconnect to the server Postgres is hosted on."
       }
     }
   }
