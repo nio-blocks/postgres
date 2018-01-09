@@ -1,6 +1,7 @@
 PostgresInsert
 ==============
-The PostgresInsert block inserts incoming signal data into a postgres database/table.
+The PostgresInsert block inserts incoming signal data into a postgres database/table.  
+SSL mode options explained: https://www.postgresql.org/docs/current/static/libpq-ssl.html
 
 Properties
 ----------
