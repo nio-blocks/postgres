@@ -2,6 +2,9 @@
   "nio/PostgresInsert": {
     "version": "1.0.0",
     "description": "The PostgresInsert block inserts incoming signal data into a postgres database/table.",
+    "categories": [
+      "Database"
+    ],
     "properties": {
       "bulk_insert": {
         "title": "Bulk Insert Incoming Signals",
