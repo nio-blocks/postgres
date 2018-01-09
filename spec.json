@@ -85,7 +85,7 @@
       },
       "reconnect": {
         "params": {},
-        "description": "reconnect to the server Postgres is hosted on."
+        "description": "Reconnect to the server Postgres is hosted on."
       }
     }
   }

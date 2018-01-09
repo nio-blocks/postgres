@@ -27,7 +27,7 @@ None
 Commands
 --------
 - **disconnect**: Disconnect from the server Postgres is hosted on.
-- **reconnect**: reconnect to the server Postgres is hosted on.
+- **reconnect**: Reconnect to the server Postgres is hosted on.
 
 Dependencies
 ------------
