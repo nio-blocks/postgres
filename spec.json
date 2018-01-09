@@ -1,6 +1,6 @@
 {
   "nio/PostgresInsert": {
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "The PostgresInsert block inserts incoming signal data into a postgres database/table.",
     "categories": [
       "Database"

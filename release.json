@@ -2,6 +2,6 @@
   "nio/PostgresInsert": {
     "language": "Python",
     "url": "git://github.com/nio-blocks/postgres.git",
-    "version": "1.0.0"
+    "version": "1.0.1"
   }
 }
